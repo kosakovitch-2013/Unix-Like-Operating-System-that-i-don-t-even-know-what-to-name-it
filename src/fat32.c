@@ -297,62 +297,6 @@ static void* fat32_open(void* fs_data, const char* path, int flags) {
     return NULL;
 }
 
-static int fat32_mkdir(void* fs_data, const char* path) {
-    (void)fs_data;
-    
-    char dir_path[256];
-    const char* dirname = path;
-    int last_slash = -1;
-    for (int i = 0; path[i]; i++)
-        if (path[i] == '/') last_slash = i;
-    
-    if (last_slash >= 0) {
-        for (int i = 0; i < last_slash; i++) dir_path[i] = path[i];
-        dir_path[last_slash] = '\0';
-        if (last_slash == 0) { dir_path[0] = '/'; dir_path[1] = '\0'; }
-        dirname = path + last_slash + 1;
-    } else {
-        dir_path[0] = '/'; dir_path[1] = '\0';
-    }
-    while (*dirname == '/') dirname++;
-    
-    char shortname[12];
-    for (int i = 0; i < 11; i++) shortname[i] = ' ';
-    int i;
-    for (i = 0; dirname[i] && i < 8; i++) {
-        if (dirname[i] >= 'a' && dirname[i] <= 'z')
-            shortname[i] = dirname[i] - 32;
-        else
-            shortname[i] = dirname[i];
-    }
-    shortname[11] = '\0';
-    
-    uint32_t parent_cluster = find_dir_cluster(dir_path);
-    if (parent_cluster == 0) return -1;
-    
-    uint32_t new_cluster = root_cluster + 10;
-    
-    uint8_t sector[512];
-    uint32_t lba = data_start + (parent_cluster - 2) * sectors_per_cluster;
-    if (ata_read_sector(lba, sector) != 0) return -1;
-    
-    fat32_dir_entry_t* entry = (fat32_dir_entry_t*)sector;
-    
-    for (i = 0; i < 16; i++) {
-        if (entry[i].name[0] == 0x00 || entry[i].name[0] == 0xE5) {
-            for (int j = 0; j < 11; j++) entry[i].name[j] = shortname[j];
-            entry[i].attr = 0x10;
-            entry[i].cluster_low = new_cluster & 0xFFFF;
-            entry[i].cluster_high = (new_cluster >> 16) & 0xFFFF;
-            entry[i].size = 0;
-            ata_write_sector(lba, sector);
-            return 0;
-        }
-    }
-    
-    return -1;
-}
-
 static super_ops_t fat32_ops = {
     .mount = fat32_mount,
     .unmount = NULL,
