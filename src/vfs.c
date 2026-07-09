@@ -133,3 +133,5 @@ int vfs_mkdir(const char* path) {
     }
     return -1;
 }
+
+// i added mkdir and list directories because it was before i was doing userspace, like while i was using shell.c to run so that's why they exist, but they'll be used later once the userspace shell will work but i use shell.c for testing aswell
