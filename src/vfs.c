@@ -122,16 +122,4 @@ int vfs_list_dir(const char* path, char* buf, size_t size) {
     return 0;
 }
 
-int vfs_mkdir(const char* path) {
-    for (int i = 0; i < mount_count; i++) {
-        size_t path_len = strlen(mounts[i].path);
-        if (strncmp(path, mounts[i].path, path_len) == 0) {
-            fs_type_t* fs = mounts[i].fs_type;
-            if (fs->ops->mkdir)
-                return fs->ops->mkdir(mounts[i].fs_data, path);
-        }
-    }
-    return -1;
-}
-
-// i added mkdir and list directories because it was before i was doing userspace, like while i was using shell.c to run so that's why they exist, but they'll be used later once the userspace shell will work but i use shell.c for testing aswell
+// list directories because it was before i was doing userspace, like while i was using shell.c to run so that's why they exist, but they'll be used later once the userspace shell will work but i use shell.c for testing aswell
