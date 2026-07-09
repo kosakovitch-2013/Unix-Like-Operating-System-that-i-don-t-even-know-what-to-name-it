@@ -1,0 +1,8 @@
+build/
+disk.img
+disk2.img
+initramfs.cpio
+*.iso
+*.bin
+*.elf
+*.o
